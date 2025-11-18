@@ -1,15 +1,14 @@
-// @ts-nocheck
-/** @typedef {import('@playwright/test').Page} Page */
-/** @typedef {import('@playwright/test').BrowserContext} Context */
-
-import { PageActions } from "../lib/pageActions";
+import { PageActions } from "../lib/PageActions";
 
 export class FlipkartPage {
     /**
-  * @param {Page} page
-  * @param {Context} context
-  */
+ * @param {import('@playwright/test').Page} page
+ * @param {import('@playwright/test').BrowserContext} context
+ * @param {string} platform
+ * @param {string} bookName
+ */
     constructor(page, context, platform, bookName) {
+        this.isBookFound = false;
         this.page = page;
         this.context = context;
         this.pageActions = new PageActions(this.page, this.context, platform)
@@ -18,6 +17,9 @@ export class FlipkartPage {
         this.searchBtn = 'button[type="submit"]';
         this.bookName = bookName;
         this.bookPriceLoc = `a[title*="${this.bookName}"]~a>div>div:first-of-type`;
+        this.publisher = '//li[starts-with(text(),"Publisher:")]';
+        this.author = '//div[text()="Author"]/following-sibling::div//a[contains(@href,"contributor")]';
+        this.isbnLoc = '//li[starts-with(text(),"ISBN:")]'
     }
 
     async navigateToPage() {
@@ -29,10 +31,30 @@ export class FlipkartPage {
     }
 
     async navigateToCheapestBook() {
-        await this.pageActions.navigateToCheapestBook({ bookPriceLoc: this.bookPriceLoc, bookName: this.bookName })
+        const { isBookFound, bookPrice } = await this.pageActions.navigateToCheapestBook({ bookPriceLoc: this.bookPriceLoc, bookName: this.bookName })
+        this.isBookFound = isBookFound;
+        return { isBookFound, bookPrice };
     }
 
     async fetchBookData() {
-        await this.pageActions.fetchBookData();
+        const bookObj = {
+            publisher: '',
+            author: '',
+            isbn: '',
+        }
+        if (this.isBookFound) {
+            const allPages = this.context.pages();
+            this.page = allPages[allPages.length - 1];
+            bookObj.publisher = (await this.page.locator(this.publisher).textContent()).replace('Publisher:', '').trim();
+            try {
+                await this.page.waitForSelector(this.author, { timeout: 5000 })
+                bookObj.author = await this.page.locator(this.author).textContent()
+            } catch (err) { }
+            try {
+                await this.page.waitForSelector(this.isbnLoc, { timeout: 5000 })
+                bookObj.isbn = await this.page.locator(isbnLoc).textContent()
+            } catch (err) { }
+        }
+        return bookObj;
     }
 }
