@@ -63,7 +63,8 @@ export class AmazonPage {
             }
 
             if (isbnLoc) {
-                bookObj.isbn = await this.page.locator(isbnLoc).textContent()
+                const isbnValue = await this.page.locator(isbnLoc).textContent();
+                bookObj.isbn = isbnValue.replace('ISBN-13|ISBN-10','').trim();
             }
         }
         return bookObj;

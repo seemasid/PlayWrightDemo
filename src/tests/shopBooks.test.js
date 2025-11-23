@@ -3,7 +3,7 @@ import { csvReader, writeJsonToFile } from '../../utils/utils';
 import { test } from '../lib/PageManager';
 import booksData from '../../results/output.json';
 
-test.describe.skip('Fetching books from all sites', () => {
+test.describe('Fetching books from all sites', () => {
   const booksObj = {};
   csvReader('../src/resources/bookList.csv').forEach(async ({ title, qty }) => {
     let bookFound = true;

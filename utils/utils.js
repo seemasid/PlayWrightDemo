@@ -13,5 +13,5 @@ export const writeJsonToFile = (obj, outputPath) => {
 export function csvReader(csvPath) {
     const content = fs.readFileSync(path.join(__dirname, csvPath), 'utf8');
     const records = parse(content, { trim: true, skip_empty_lines: true });
-    return records.map(r => ({ title: r[0], qty: parseInt(r[1], 10) || 1 }));
+    return records.map(r => ({ title: r[0], qty: Number(r[1]) }));
 }
