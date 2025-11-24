@@ -10,6 +10,10 @@ export const writeJsonToFile = (obj, outputPath) => {
     fs.writeFileSync(outputPath, JSON.stringify(obj, null, 2), 'utf8');
 }
 
+export const jsonReader = (filePath) => {
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+}
+
 export function csvReader(csvPath) {
     const content = fs.readFileSync(path.join(__dirname, csvPath), 'utf8');
     const records = parse(content, { trim: true, skip_empty_lines: true });

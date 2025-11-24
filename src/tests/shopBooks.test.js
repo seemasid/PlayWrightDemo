@@ -1,9 +1,8 @@
 
-import { csvReader, writeJsonToFile } from '../../utils/utils';
+import { csvReader, jsonReader, writeJsonToFile } from '../../utils/utils';
 import { test } from '../lib/PageManager';
-import booksData from '../../results/output.json';
 
-test.describe('Fetching books from all sites', () => {
+test.describe('Fetching books from all sites', async () => {
   const booksObj = {};
   csvReader('../src/resources/bookList.csv').forEach(async ({ title, qty }) => {
     let bookFound = true;
@@ -94,8 +93,9 @@ test.describe('Fetching books from all sites', () => {
   });
 })
 
-test.describe('Conclude which platform is cheaper to buy the set of books and list out total costs in each online retail platform for comparison', () => {
+test.describe('Conclude which platform is cheaper to buy the set of books and list out total costs in each online retail platform for comparison', async () => {
   test('All books are available on all the sites', async ({ pageActions }) => {
+    const booksData = jsonReader('./results/output.json');
     const bookKeys = Object.keys(booksData);
     const filteredBooks = Object.keys(booksData).filter((bookName) => {
       return booksData[bookName].Amazon["Is available"] && booksData[bookName].Flipkart["Is available"] && booksData[bookName].BooksIndia["Is available"]
@@ -107,19 +107,20 @@ test.describe('Conclude which platform is cheaper to buy the set of books and li
     }
   })
   test('If a book is unavailable on one site, choose the platform where all books are available', async ({ pageActions }) => {
+    const booksData = jsonReader('./results/output.json');
     const filteredBooks = Object.keys(booksData).filter((bookName) => {
       return booksData[bookName].Amazon["Is available"] || booksData[bookName].Flipkart["Is available"] || booksData[bookName].BooksIndia["Is available"]
     })
     let filteredTotalCost = await pageActions.getTotalCostOfBooks(filteredBooks, booksData);
     Object.keys(booksData).forEach((bName) => {
       if (!filteredTotalCost?.amazon?.[bName]) {
-        delete filteredTotalCost.amazon
+        delete filteredTotalCost.amazon?.[bName]
       }
       if (!filteredTotalCost?.flipkart?.[bName]) {
-        delete filteredTotalCost.flipkart
+        delete filteredTotalCost.flipkart?.[bName]
       }
       if (!filteredTotalCost?.booksIndia?.[bName]) {
-        delete filteredTotalCost.booksIndia
+        delete filteredTotalCost.booksIndia?.[bName]
       }
     })
     console.log({ filteredTotalCost })
